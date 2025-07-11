@@ -1,0 +1,80 @@
+export const lightTheme = {
+  colors: {
+    primary: '#6B46C1',
+    secondary: '#3B82F6',
+    accent: '#10B981',
+    background: '#FFFFFF',
+    surface: '#F8FAFC',
+    card: '#FFFFFF',
+    text: '#1F2937',
+    textSecondary: '#6B7280',
+    border: '#E5E7EB',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    shadow: 'rgba(0, 0, 0, 0.1)',
+  },
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+  },
+  borderRadius: {
+    sm: 4,
+    md: 8,
+    lg: 12,
+    xl: 16,
+    full: 9999,
+  },
+  typography: {
+    h1: {
+      fontSize: 32,
+      fontWeight: '700' as const,
+      fontFamily: 'Inter-Bold',
+      lineHeight: 40,
+    },
+    h2: {
+      fontSize: 24,
+      fontWeight: '600' as const,
+      fontFamily: 'Inter-SemiBold',
+      lineHeight: 32,
+    },
+    h3: {
+      fontSize: 18,
+      fontWeight: '600' as const,
+      fontFamily: 'Inter-SemiBold',
+      lineHeight: 24,
+    },
+    body: {
+      fontSize: 16,
+      fontWeight: '400' as const,
+      fontFamily: 'Inter-Regular',
+      lineHeight: 24,
+    },
+    caption: {
+      fontSize: 14,
+      fontWeight: '400' as const,
+      fontFamily: 'Inter-Regular',
+      lineHeight: 20,
+    },
+  },
+};
+
+export const darkTheme = {
+  ...lightTheme,
+  colors: {
+    ...lightTheme.colors,
+    primary: '#8B5CF6',
+    secondary: '#60A5FA',
+    background: '#0F172A',
+    surface: '#1E293B',
+    card: '#1E293B',
+    text: '#F1F5F9',
+    textSecondary: '#94A3B8',
+    border: '#334155',
+    shadow: 'rgba(0, 0, 0, 0.3)',
+  },
+};
