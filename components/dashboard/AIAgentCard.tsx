@@ -1,8 +1,13 @@
 import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
 import { lightTheme, darkTheme } from '@/constants/theme';
 import { AIAgent } from '@/types';
+
+const { width } = Dimensions.get('window');
+const cardGap = 16;
+const horizontalPadding = 24;
+const cardWidth = (width - (horizontalPadding * 2) - cardGap) / 2;
 
 interface AIAgentCardProps {
   agent: AIAgent;
@@ -19,7 +24,7 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 0.95,
-        useNativeDriver: false, // Changed to false
+        useNativeDriver: false,
       }),
       Animated.timing(shadowAnim, {
         toValue: 1,
@@ -33,7 +38,7 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 1,
-        useNativeDriver: false, // Changed to false
+        useNativeDriver: false,
       }),
       Animated.timing(shadowAnim, {
         toValue: 0,
@@ -55,61 +60,75 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
 
   const styles = StyleSheet.create({
     container: {
-      flex: 1,
+      width: cardWidth,
+      height: 200, // Fixed height for consistency
     },
     card: {
-      height: 180,
+      flex: 1,
       backgroundColor: theme.colors.card,
       borderRadius: theme.borderRadius.xl,
-      padding: theme.spacing.lg,
+      padding: theme.spacing.md,
       borderWidth: 1,
       borderColor: theme.colors.border,
+      alignItems: 'center', // Center all content
       justifyContent: 'space-between',
     },
     iconContainer: {
-      width: 56,
-      height: 56,
+      width: 60,
+      height: 60,
       borderRadius: theme.borderRadius.full,
       backgroundColor: agent.color || theme.colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
+      marginTop: theme.spacing.md,
       marginBottom: theme.spacing.md,
       shadowColor: agent.color || theme.colors.primary,
       shadowOffset: {
         width: 0,
-        height: 2,
+        height: 4,
       },
       shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 3,
+      shadowRadius: 6,
+      elevation: 4,
     },
     icon: {
-      fontSize: 28,
+      fontSize: 32,
       color: '#FFFFFF',
     },
     content: {
       flex: 1,
+      alignItems: 'center', // Center text content
+      justifyContent: 'center',
+      width: '100%',
     },
     name: {
       ...theme.typography.h3,
       color: theme.colors.text,
       marginBottom: theme.spacing.sm,
+      textAlign: 'center', // Center text
+      fontWeight: '600',
+      fontSize: 16,
     },
     description: {
       ...theme.typography.caption,
       color: theme.colors.textSecondary,
-      lineHeight: 18,
+      lineHeight: 20,
+      textAlign: 'center', // Center text
+      fontSize: 13,
+      fontWeight: '400',
       flex: 1,
     },
     footer: {
-      marginTop: theme.spacing.md,
+      marginTop: theme.spacing.sm,
+      alignItems: 'center', // Center footer content
     },
     type: {
-      fontSize: 12,
+      fontSize: 11,
       color: theme.colors.primary,
       fontFamily: 'Inter-SemiBold',
       textTransform: 'uppercase',
       letterSpacing: 0.5,
+      textAlign: 'center', // Center text
     },
   });
 
@@ -117,6 +136,7 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
     <View style={styles.container}>
       <Animated.View 
         style={{ 
+          flex: 1,
           transform: [{ scale: scaleAnim }],
           shadowOpacity: animatedShadowOpacity,
           elevation: animatedElevation,
@@ -139,20 +159,22 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
             }
           ]}
         >
-          <View>
-            <View style={styles.iconContainer}>
-              <Text style={styles.icon}>{agent.icon}</Text>
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.name}>{agent.name}</Text>
-              <Text style={styles.description} numberOfLines={3}>
-                {agent.description}
-              </Text>
-            </View>
+          <View style={styles.iconContainer}>
+            <Text style={styles.icon}>{agent.icon}</Text>
           </View>
-          <View style={styles.footer}>
+          
+          <View style={styles.content}>
+            <Text style={styles.name} numberOfLines={1}>
+              {agent.name}
+            </Text>
+            {/* <Text style={styles.description} numberOfLines={3}>
+              {agent.description}
+            </Text> */}
+          </View>
+          
+          {/* <View style={styles.footer}>
             <Text style={styles.type}>{agent.type.replace('-', ' ')}</Text>
-          </View>
+          </View> */}
         </TouchableOpacity>
       </Animated.View>
     </View>

@@ -6,8 +6,10 @@ import { lightTheme, darkTheme } from '@/constants/theme';
 import { AIAgent } from '@/types';
 import { AIAgentCard } from '@/components/dashboard/AIAgentCard';
 
-const { width } = Dimensions.get('window');
-const cardWidth = (width - 48) / 2; // 48 = padding + gap
+const { width, height } = Dimensions.get('window');
+const cardGap = 16; // Gap between cards
+const horizontalPadding = 24; // Padding from screen edges
+const cardWidth = (width - (horizontalPadding * 2) - cardGap) / 2; // Calculate card width with gap
 
 const mockAgents: AIAgent[] = [
   {
@@ -76,7 +78,7 @@ export default function HomeScreen() {
       backgroundColor: theme.colors.background,
     },
     header: {
-      paddingHorizontal: theme.spacing.lg,
+      paddingHorizontal: horizontalPadding,
       paddingTop: theme.spacing.xl,
       paddingBottom: theme.spacing.lg,
       backgroundColor: theme.colors.background,
@@ -92,13 +94,13 @@ export default function HomeScreen() {
       lineHeight: 24,
     },
     grid: {
-      paddingHorizontal: theme.spacing.lg,
+      paddingHorizontal: horizontalPadding,
       paddingBottom: theme.spacing.xl,
     },
     row: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: theme.spacing.lg,
+      marginBottom: cardGap, // Use consistent gap
     },
     cardContainer: {
       width: cardWidth,
