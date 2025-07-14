@@ -5,6 +5,8 @@ import { useApp } from '@/contexts/AppContext';
 import { lightTheme, darkTheme } from '@/constants/theme';
 import { AIAgent } from '@/types';
 import { AIAgentCard } from '@/components/dashboard/AIAgentCard';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 
 const { width, height } = Dimensions.get('window');
 const cardGap = 16; // Gap between cards
@@ -16,49 +18,49 @@ const mockAgents: AIAgent[] = [
     id: '1',
     name: 'iResearcher',
     type: 'research',
-    description: 'Advanced research assistant for comprehensive data analysis and insights',
+    description: '',
     icon: '🔬',
-    color: '#3B82F6',
+    color: '',
   },
   {
     id: '2',
     name: 'Medical AI',
     type: 'medical',
-    description: 'Medical research and health information specialist',
+    description: '',
     icon: '🏥',
-    color: '#10B981',
+    color: '',
   },
   {
     id: '3',
     name: 'Finance Pro',
     type: 'finance',
-    description: 'Financial analysis and investment guidance expert',
+    description: '',
     icon: '💰',
-    color: '#F59E0B',
+    color: '',
   },
   {
     id: '4',
     name: 'Deep Research',
     type: 'deep-research',
-    description: 'In-depth research with comprehensive analysis and documentation',
+    description: '',
     icon: '🧠',
-    color: '#8B5CF6',
+    color: '',
   },
   {
     id: '5',
-    name: 'Business Advisor',
+    name: 'Business',
     type: 'business',
-    description: 'Strategic business consultation and market analysis',
+    description: '',
     icon: '📊',
-    color: '#EF4444',
+    color: '',
   },
   {
     id: '6',
     name: 'Data Analyst',
-    type: 'research',
-    description: 'Statistical analysis and data visualization expert',
+    type: 'data-analyst',
+    description: '',
     icon: '📈',
-    color: '#06B6D4',
+    color: '',
   },
 ];
 
@@ -87,66 +89,51 @@ export default function HomeScreen() {
       ...theme.typography.h1,
       color: theme.colors.text,
       marginBottom: theme.spacing.sm,
-    },
-    subtitle: {
-      ...theme.typography.body,
-      color: theme.colors.textSecondary,
-      lineHeight: 24,
+      textAlign: 'center',
     },
     grid: {
       paddingHorizontal: horizontalPadding,
       paddingBottom: theme.spacing.xl,
+      // Removed alignItems and justifyContent to fix grid
     },
-    row: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: cardGap, // Use consistent gap
-    },
-    cardContainer: {
-      width: cardWidth,
+    item: {
+      width: '50%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 20,
     },
   });
 
-  const renderRow = ({ item, index }: { item: AIAgent[]; index: number }) => (
-    <View style={styles.row}>
-      {item.map((agent, agentIndex) => (
-        <View key={agent.id} style={styles.cardContainer}>
-          <AIAgentCard
-            agent={agent}
-            onPress={() => handleAgentPress(agent)}
-          />
-        </View>
-      ))}
-      {item.length === 1 && <View style={styles.cardContainer} />}
-    </View>
-  );
-
-  // Group agents into rows of 2
-  const agentRows = mockAgents.reduce((rows: AIAgent[][], agent, index) => {
-    if (index % 2 === 0) {
-      rows.push([agent]);
-    } else {
-      rows[rows.length - 1].push(agent);
-    }
-    return rows;
-  }, []);
+  const themeColors: [string, string] = state.theme === 'light'
+    ? ['#e0e7ef', '#b6d0f7']
+    : ['#232946', '#3b3c5c'];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>AI Agents</Text>
-        <Text style={styles.subtitle}>
-          Choose an AI agent to get started with your research and analysis
-        </Text>
-      </View>
-      
-      <FlatList
-        data={agentRows}
-        renderItem={renderRow}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.grid}
-        showsVerticalScrollIndicator={false}
-      />
-    </SafeAreaView>
+    <LinearGradient
+      colors={themeColors}
+      style={{ flex: 1 }}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+    >
+      <BlurView intensity={40} tint={state.theme === 'light' ? 'light' : 'dark'} style={{ ...StyleSheet.absoluteFillObject }} />
+      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
+        <View style={styles.header}>
+          <Text style={styles.title}>AI Agents</Text>
+          {/* Removed description/subtitle for minimal look */}
+        </View>
+        <FlatList
+          data={mockAgents}
+          renderItem={({ item }) => (
+            <View style={styles.item}>
+              <AIAgentCard agent={item} onPress={() => handleAgentPress(item)} />
+            </View>
+          )}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.grid}
+          showsVerticalScrollIndicator={false}
+          numColumns={2}
+        />
+      </SafeAreaView>
+    </LinearGradient>
   );
 }

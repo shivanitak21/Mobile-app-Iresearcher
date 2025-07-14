@@ -1,13 +1,25 @@
 import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Image } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
 import { lightTheme, darkTheme } from '@/constants/theme';
 import { AIAgent } from '@/types';
+import { BlurView } from 'expo-blur';
+import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 const cardGap = 16;
 const horizontalPadding = 24;
 const cardWidth = (width - (horizontalPadding * 2) - cardGap) / 2;
+
+// Map agent type to Flaticon PNGs
+const agentImageMap: Record<string, any> = {
+  research: require('@/assets/images/search.png'),
+  medical: require('@/assets/images/hospital.png'),
+  finance: require('@/assets/images/finance.png'),
+  'deep-research': require('@/assets/images/brain.png'),
+  business: require('@/assets/images/business.png'),
+  'data-analyst': require('@/assets/images/chart.png'),
+};
 
 interface AIAgentCardProps {
   agent: AIAgent;
@@ -58,125 +70,70 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
     outputRange: [4, 12],
   });
 
+  const isLight = state.theme === 'light';
+  const cardBg = isLight ? 'rgba(255,255,255,0.18)' : 'rgba(36,54,90,0.38)';
+  const borderCol = isLight ? 'rgba(255,255,255,0.22)' : 'rgba(59,130,246,0.18)';
+  const iconColor = '#fff';
+  const iconShadow = isLight ? {} : { textShadowColor: '#000', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 };
+  const textColor = isLight ? '#222e3a' : 'rgba(255,255,255,0.92)';
+
   const styles = StyleSheet.create({
     container: {
-      width: cardWidth,
-      height: 200, // Fixed height for consistency
-    },
-    card: {
       flex: 1,
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.borderRadius.xl,
-      padding: theme.spacing.md,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      alignItems: 'center', // Center all content
-      justifyContent: 'space-between',
-    },
-    iconContainer: {
-      width: 60,
-      height: 60,
-      borderRadius: theme.borderRadius.full,
-      backgroundColor: agent.color || theme.colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: theme.spacing.md,
-      marginBottom: theme.spacing.md,
-      shadowColor: agent.color || theme.colors.primary,
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: 0.3,
-      shadowRadius: 6,
-      elevation: 4,
+    },
+    iconGlass: {
+      width: 72,
+      height: 72,
+      borderRadius: 20,
+      overflow: 'hidden',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: borderCol,
+      backgroundColor: cardBg,
+      position: 'relative',
+      shadowColor: isLight ? '#3B82F6' : '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isLight ? 0.10 : 0.22,
+      shadowRadius: 12,
+      elevation: 6,
+    },
+    blur: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: 20,
     },
     icon: {
       fontSize: 32,
-      color: '#FFFFFF',
-    },
-    content: {
-      flex: 1,
-      alignItems: 'center', // Center text content
-      justifyContent: 'center',
-      width: '100%',
+      color: iconColor,
+      textAlign: 'center',
+      zIndex: 1,
+      ...iconShadow,
     },
     name: {
       ...theme.typography.h3,
-      color: theme.colors.text,
-      marginBottom: theme.spacing.sm,
-      textAlign: 'center', // Center text
-      fontWeight: '600',
-      fontSize: 16,
-    },
-    description: {
-      ...theme.typography.caption,
-      color: theme.colors.textSecondary,
-      lineHeight: 20,
-      textAlign: 'center', // Center text
-      fontSize: 13,
-      fontWeight: '400',
-      flex: 1,
-    },
-    footer: {
-      marginTop: theme.spacing.sm,
-      alignItems: 'center', // Center footer content
-    },
-    type: {
-      fontSize: 11,
-      color: theme.colors.primary,
-      fontFamily: 'Inter-SemiBold',
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-      textAlign: 'center', // Center text
+      color: textColor,
+      textAlign: 'center',
+      fontWeight: '500',
+      fontSize: 14,
+      marginTop: 0,
     },
   });
 
   return (
-    <View style={styles.container}>
-      <Animated.View 
-        style={{ 
-          flex: 1,
-          transform: [{ scale: scaleAnim }],
-          shadowOpacity: animatedShadowOpacity,
-          elevation: animatedElevation,
-        }}
-      >
-        <TouchableOpacity 
-          onPress={onPress} 
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          activeOpacity={1}
-          style={[
-            styles.card,
-            {
-              shadowColor: theme.colors.shadow,
-              shadowOffset: {
-                width: 0,
-                height: 4,
-              },
-              shadowRadius: 8,
-            }
-          ]}
-        >
-          <View style={styles.iconContainer}>
-            <Text style={styles.icon}>{agent.icon}</Text>
-          </View>
-          
-          <View style={styles.content}>
-            <Text style={styles.name} numberOfLines={1}>
-              {agent.name}
-            </Text>
-            {/* <Text style={styles.description} numberOfLines={3}>
-              {agent.description}
-            </Text> */}
-          </View>
-          
-          {/* <View style={styles.footer}>
-            <Text style={styles.type}>{agent.type.replace('-', ' ')}</Text>
-          </View> */}
-        </TouchableOpacity>
-      </Animated.View>
-    </View>
+    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.85}>
+      <View style={styles.iconGlass}>
+        <BlurView intensity={70} tint={isLight ? 'light' : 'dark'} style={styles.blur} />
+        <Image
+          source={agentImageMap[agent.type] || agentImageMap['research']}
+          style={{ width: 36, height: 36, resizeMode: 'contain', zIndex: 1 }}
+        />
+      </View>
+      <Text style={styles.name} numberOfLines={1}>
+        {agent.name}
+      </Text>
+    </TouchableOpacity>
   );
 }

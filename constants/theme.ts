@@ -1,18 +1,18 @@
 export const lightTheme = {
   colors: {
-    primary: '#6B46C1',
-    secondary: '#3B82F6',
-    accent: '#10B981',
-    background: '#FFFFFF',
-    surface: '#F8FAFC',
-    card: '#FFFFFF',
+    primary: '#3B82F6', // blue
+    secondary: '#60A5FA', // lighter blue
+    accent: '#E0E7EF', // light gray
+    background: '#F6F8FB', // very light gray
+    surface: '#F0F4F8', // lighter surface
+    card: 'rgba(255,255,255,0.7)', // glassy white
     text: '#1F2937',
     textSecondary: '#6B7280',
-    border: '#E5E7EB',
-    success: '#10B981',
-    warning: '#F59E0B',
-    error: '#EF4444',
-    shadow: 'rgba(0, 0, 0, 0.1)',
+    border: '#D1D5DB', // lighter border
+    success: '#3B82F6', // blue for success
+    warning: '#60A5FA', // blue for warning
+    error: '#E0E7EF', // light gray for error
+    shadow: 'rgba(59, 130, 246, 0.10)', // blue shadow
   },
   spacing: {
     xs: 4,
@@ -67,14 +67,14 @@ export const darkTheme = {
   ...lightTheme,
   colors: {
     ...lightTheme.colors,
-    primary: '#8B5CF6',
+    primary: '#3B82F6',
     secondary: '#60A5FA',
-    background: '#0F172A',
-    surface: '#1E293B',
-    card: '#1E293B',
+    background: '#1E293B',
+    surface: '#273449',
+    card: 'rgba(30,41,59,0.7)',
     text: '#F1F5F9',
     textSecondary: '#94A3B8',
     border: '#334155',
-    shadow: 'rgba(0, 0, 0, 0.3)',
+    shadow: 'rgba(59, 130, 246, 0.20)',
   },
 };
