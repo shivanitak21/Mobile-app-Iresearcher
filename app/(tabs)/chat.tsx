@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, StatusBar, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, StatusBar, Modal, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, ChevronDown } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
@@ -247,6 +247,11 @@ export default function ChatScreen() {
           contentContainerStyle={styles.messagesList}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={renderEmptyState}
+          ListFooterComponent={state.chat.isLoading ? (
+            <View style={{ alignItems: 'center', marginVertical: 16 }}>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+            </View>
+          ) : null}
         />
         
         <ChatInput

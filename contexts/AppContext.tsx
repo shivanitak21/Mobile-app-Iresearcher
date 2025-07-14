@@ -138,6 +138,26 @@ function appReducer(state: AppState, action: AppAction): AppState {
   }
 }
 
+function cleanBotMarkdown(text: string): string {
+  let cleaned = text
+    .replace(/^```[a-z]*\n?/im, '') // Remove opening code block
+    .replace(/```$/gm, '')           // Remove closing code block
+    .replace(/^>\s?/gm, '')         // Remove blockquote markers
+    .replace(/```markdown/g, '')     // Remove ```markdown
+    .replace(/```references/g, '')   // Remove ```references
+    .replace(/```json/g, '')         // Remove ```json
+    .replace(/```chart/g, '')        // Remove ```chart
+    .replace(/chart_id[:\s]*\[?\w+\]?/gi, '') // Remove chart_id lines
+    .trim();
+
+  // Convert references code block to markdown list
+  if (/^references\s*- /im.test(cleaned)) {
+    cleaned = cleaned.replace(/^references\s*/im, '');
+    cleaned = cleaned.replace(/^- /gm, '\n- '); // Ensure each reference is a list item
+  }
+  return cleaned;
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
@@ -204,7 +224,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       
       const headers = {
         'Content-Type': 'application/json',
-        'X-API-Key': apiKey,
+        'X-API-Key': apiKey || '',
       };
       
       console.log('Headers:', headers);
@@ -236,7 +256,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.log('Raw Response:', responseText);
       
       let aiResponseText = '';
-      let visualizations = [];
+      let visualizations: any[] = [];
       
       try {
         // Handle streaming response format
@@ -261,9 +281,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Clean up the response text
         aiResponseText = aiResponseText.trim();
         
-        // Parse tables and charts from markdown
+        // Parse tables and charts from markdown, passing raw lines for chart extraction
         const cleanedText = cleanMarkdownText(aiResponseText);
-        visualizations = parseVisualizationsFromMarkdown(cleanedText);
+        visualizations = parseVisualizationsFromMarkdown(cleanedText, lines);
         
       } catch (error) {
         console.error('Error parsing response:', error);
@@ -272,7 +292,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text: cleanMarkdownText(aiResponseText) || 'No response content received',
+        text: cleanBotMarkdown(cleanMarkdownText(aiResponseText)) || 'No response content received',
         isUser: false,
         timestamp: new Date(),
         visualizations: visualizations.length > 0 ? visualizations : undefined,

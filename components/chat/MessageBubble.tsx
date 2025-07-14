@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking, ScrollView } from 'react-native';
 import { Copy, Download, CreditCard as Edit3, Check, X } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system';
@@ -21,7 +21,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const theme = state.theme === 'light' ? lightTheme : darkTheme;
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(message.text);
-
+  
   const copyToClipboard = () => {
     Clipboard.setString(message.text);
     Alert.alert('Copied', 'Message copied to clipboard');
@@ -242,6 +242,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     Linking.openURL(url).catch(() => {
       Alert.alert('Error', 'Could not open link');
     });
+    return true;
   };
 
   const markdownStyles = {
@@ -322,11 +323,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       borderLeftWidth: 4,
       borderLeftColor: message.isUser ? 'rgba(255,255,255,0.3)' : theme.colors.primary,
     },
-    link: {
-      color: message.isUser ? '#FFFFFF' : theme.colors.primary,
-      textDecorationLine: 'underline',
-      fontWeight: '500',
-    },
     blockquote: {
       backgroundColor: message.isUser ? 'rgba(255,255,255,0.1)' : theme.colors.surface,
       borderLeftWidth: 4,
@@ -341,7 +337,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       borderColor: theme.colors.border,
       borderRadius: 8,
       marginVertical: 12,
-      overflow: 'hidden',
     },
     thead: {
       backgroundColor: message.isUser ? 'rgba(255,255,255,0.1)' : theme.colors.primary,
@@ -376,7 +371,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       marginVertical: theme.spacing.sm,
     },
     bubble: {
-      backgroundColor: message.isUser ? theme.colors.primary : theme.colors.card,
+      backgroundColor: message.isUser ? theme.colors.primary : theme.colors.surface, // simple background for bot
       borderRadius: theme.borderRadius.xl,
       padding: theme.spacing.lg,
       shadowColor: theme.colors.shadow,
@@ -384,8 +379,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3,
-      borderWidth: message.isUser ? 0 : 1,
-      borderColor: message.isUser ? 'transparent' : theme.colors.border,
+      borderWidth: 0, // no border for bot or user
+      borderColor: 'transparent',
     },
     timestamp: {
       fontSize: 12,
@@ -454,11 +449,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           <Markdown 
             style={markdownStyles}
             onLinkPress={handleLinkPress}
+            // Ensure links are clickable and open in browser
+            // react-native-markdown-display already supports this
           >
             {message.text}
           </Markdown>
         )}
-        
         {message.visualizations && message.visualizations.length > 0 && (
           <View style={styles.visualizations}>
             {message.visualizations.map((viz, index) => (
@@ -466,7 +462,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             ))}
           </View>
         )}
-        
         <Text style={styles.timestamp}>
           {message.timestamp.toLocaleTimeString()}
         </Text>

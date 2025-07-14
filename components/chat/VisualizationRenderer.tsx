@@ -8,6 +8,20 @@ import { Visualization } from '@/types';
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - 80;
 
+// Add pastel color palette at the top after imports
+const pastelColors = [
+  '#A3CEF1', // Light Blue
+  '#FFB5E8', // Pink
+  '#B5EAD7', // Mint
+  '#FFDAC1', // Peach
+  '#E2F0CB', // Light Green
+  '#C7CEEA', // Lavender
+  '#FFFACD', // Lemon
+  '#FFD6E0', // Rose
+  '#B5D8FA', // Sky
+  '#F1CBFF', // Lilac
+];
+
 interface VisualizationRendererProps {
   visualization: Visualization;
 }
@@ -35,6 +49,11 @@ export function VisualizationRenderer({ visualization }: VisualizationRendererPr
       strokeDasharray: '',
       stroke: theme.colors.border,
       strokeWidth: 1,
+    },
+    propsForLabels: {
+      fontSize: 13,
+      fontWeight: '600',
+      fill: theme.colors.text,
     },
   };
 
@@ -149,36 +168,42 @@ export function VisualizationRenderer({ visualization }: VisualizationRendererPr
     if (!data || data.length === 0) return null;
 
     const headers = Object.keys(data[0]);
+    const minTableWidth = headers.length * 140; // 140px per column
     
     return (
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={true}
         style={styles.tableContainer}
-        contentContainerStyle={{ minWidth: '100%' }}
+        contentContainerStyle={{ minWidth: minTableWidth }}
       >
-        <View style={{ minWidth: chartWidth }}>
-          <View style={styles.tableHeader}>
-            {headers.map((header, index) => (
-              <View key={index} style={styles.tableHeaderCell}>
-                <Text style={styles.tableHeaderText} numberOfLines={2}>
-                  {header.charAt(0).toUpperCase() + header.slice(1).replace(/([A-Z])/g, ' $1')}
-                </Text>
-              </View>
-            ))}
-          </View>
-          {data.map((row, index) => (
-            <View key={index} style={[styles.tableRow, index % 2 === 1 && styles.tableRowAlt]}>
-              {headers.map((header, cellIndex) => (
-                <View key={cellIndex} style={styles.tableCell}>
-                  <Text style={styles.tableCellText} numberOfLines={3}>
-                    {row[header]?.toString() || '-'}
+        <ScrollView
+          style={{ maxHeight: 400 }}
+          showsVerticalScrollIndicator={true}
+        >
+          <View style={{ minWidth: minTableWidth }}>
+            <View style={styles.tableHeader}>
+              {headers.map((header, index) => (
+                <View key={index} style={styles.tableHeaderCell}>
+                  <Text style={styles.tableHeaderText}>
+                    {header.charAt(0).toUpperCase() + header.slice(1).replace(/([A-Z])/g, ' $1')}
                   </Text>
                 </View>
               ))}
             </View>
-          ))}
-        </View>
+            {data.map((row, index) => (
+              <View key={index} style={[styles.tableRow, index % 2 === 1 && styles.tableRowAlt]}>
+                {headers.map((header, cellIndex) => (
+                  <View key={cellIndex} style={styles.tableCell}>
+                    <Text style={styles.tableCellText}>
+                      {row[header]?.toString() || '-'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       </ScrollView>
     );
   };
@@ -188,98 +213,148 @@ export function VisualizationRenderer({ visualization }: VisualizationRendererPr
       return (
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>Chart Data Unavailable</Text>
-          <Text style={styles.noDataSubtext}>
-            Chart ID: {data?.chart_id || 'Unknown'}
-          </Text>
         </View>
       );
     }
 
-    // Handle different chart data formats
-    if (data.chart_id) {
-      return (
-        <View style={styles.noDataContainer}>
-          <Text style={styles.noDataText}>📊 Chart Available</Text>
-          <Text style={styles.noDataSubtext}>
-            Chart ID: {data.chart_id}
-          </Text>
-          <Text style={styles.noDataSubtext}>
-            Interactive chart will be rendered here
-          </Text>
-        </View>
-      );
+    // Support flexible chart data
+    let chartData = data;
+    // If data is an array of objects with category/value, convert to chart.js format
+    if (Array.isArray(data) && data.length > 0 && data[0].category && data[0].value) {
+      chartData = {
+        labels: data.map((d: any) => d.category),
+        datasets: [{ data: data.map((d: any) => d.value) }],
+        type: 'bar',
+        raw: data,
+      };
     }
 
-    // Try to render actual chart data
-    try {
-      if (data.type === 'line' && data.datasets) {
+    if (chartData.type && (chartData.datasets || chartData.data)) {
+      try {
+        if (chartData.type === 'line' && chartData.datasets) {
+          // Horizontal scroll if too many points
+          const minPointWidth = 60;
+          const chartDataLength = chartData.labels ? chartData.labels.length : (chartData.datasets[0]?.data.length || 1);
+          const dynamicWidth = Math.max(chartWidth - 32, chartDataLength * minPointWidth);
+          return (
+            <ScrollView horizontal showsHorizontalScrollIndicator={true} style={{ width: chartWidth - 32 }}>
+              <View style={{ width: dynamicWidth }}>
+                <LineChart
+                  data={{
+                    ...chartData,
+                    datasets: chartData.datasets.map((ds: any, i: number) => ({
+                      ...ds,
+                      color: (opacity = 1) => pastelColors[i % pastelColors.length] + (opacity === 1 ? '' : Math.floor(opacity * 255).toString(16)),
+                    })),
+                  }}
+                  width={dynamicWidth}
+                  height={220}
+                  chartConfig={{
+                    ...chartConfig,
+                    color: (opacity = 1) => pastelColors[0] + (opacity === 1 ? '' : Math.floor(opacity * 255).toString(16)),
+                    labelColor: (opacity = 1) => theme.colors.text,
+                  }}
+                  bezier
+                  style={{ borderRadius: 8 }}
+                  yAxisLabel={''}
+                  yAxisSuffix={''}
+                  formatYLabel={(v: string | number) => `${v}`}
+                  formatXLabel={(v: string | number) => `${v}`}
+                />
+              </View>
+            </ScrollView>
+          );
+        }
+
+        if (chartData.type === 'bar' && chartData.datasets) {
+          // Calculate dynamic width for bar chart
+          const minBarWidth = 60; // Minimum width per bar
+          const chartDataLength = chartData.labels ? chartData.labels.length : (chartData.datasets[0]?.data.length || 1);
+          const dynamicWidth = Math.max(chartWidth - 32, chartDataLength * minBarWidth);
+          return (
+            <ScrollView horizontal showsHorizontalScrollIndicator={true} style={{ width: chartWidth - 32 }}>
+              <View style={{ width: dynamicWidth }}>
+                <BarChart
+                  data={{
+                    ...chartData,
+                    datasets: chartData.datasets.map((ds: any, i: number) => ({
+                      ...ds,
+                      color: (opacity = 1) => pastelColors[i % pastelColors.length] + (opacity === 1 ? '' : Math.floor(opacity * 255).toString(16)),
+                    })),
+                  }}
+                  width={dynamicWidth}
+                  height={220}
+                  chartConfig={{
+                    ...chartConfig,
+                    color: (opacity = 1) => pastelColors[0] + (opacity === 1 ? '' : Math.floor(opacity * 255).toString(16)),
+                    labelColor: (opacity = 1) => theme.colors.text,
+                  }}
+                  style={{ borderRadius: 8 }}
+                  yAxisLabel={''}
+                  yAxisSuffix={''}
+                />
+              </View>
+            </ScrollView>
+          );
+        }
+
+        if (chartData.type === 'pie' && chartData.data) {
+          // Assign pastel color to each slice
+          const pieData = chartData.data.map((d: any, i: number) => ({
+            ...d,
+            color: pastelColors[i % pastelColors.length],
+            legendFontColor: theme.colors.text,
+            legendFontSize: 14,
+          }));
+          return (
+            <ScrollView horizontal showsHorizontalScrollIndicator={true} style={{ width: chartWidth - 32 }}>
+              <View style={{ width: chartWidth - 32 }}>
+                <PieChart
+                  data={pieData}
+                  width={chartWidth - 32}
+                  height={220}
+                  chartConfig={{
+                    ...chartConfig,
+                    color: (opacity = 1) => pastelColors[0] + (opacity === 1 ? '' : Math.floor(opacity * 255).toString(16)),
+                    labelColor: (opacity = 1) => theme.colors.text,
+                  }}
+                  accessor="value"
+                  backgroundColor="transparent"
+                  paddingLeft="15"
+                  style={{ borderRadius: 8 }}
+                  hasLegend={true}
+                />
+              </View>
+            </ScrollView>
+          );
+        }
+
+        // Fallback for unknown chart format
         return (
-          <View style={styles.chartWrapper}>
-            <LineChart
-              data={data}
-              width={chartWidth - 32}
-              height={220}
-              chartConfig={chartConfig}
-              bezier
-              style={{ borderRadius: 8 }}
-            />
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>📈 Chart Data Detected</Text>
+            <Text style={styles.noDataSubtext}>
+              Type: {chartData.type || 'Unknown'}
+            </Text>
+            <Text style={styles.noDataSubtext}>
+              Data points: {Array.isArray(chartData.datasets) ? chartData.datasets.length : 'N/A'}
+            </Text>
+          </View>
+        );
+      } catch (error) {
+        return (
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>Chart Rendering Error</Text>
+            <Text style={styles.noDataSubtext}>
+              Unable to display chart data
+            </Text>
           </View>
         );
       }
-
-      if (data.type === 'bar' && data.datasets) {
-        return (
-          <View style={styles.chartWrapper}>
-            <BarChart
-              data={data}
-              width={chartWidth - 32}
-              height={220}
-              chartConfig={chartConfig}
-              style={{ borderRadius: 8 }}
-            />
-          </View>
-        );
-      }
-
-      if (data.type === 'pie' && data.data) {
-        return (
-          <View style={styles.chartWrapper}>
-            <PieChart
-              data={data.data}
-              width={chartWidth - 32}
-              height={220}
-              chartConfig={chartConfig}
-              accessor="value"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              style={{ borderRadius: 8 }}
-            />
-          </View>
-        );
-      }
-
-      // Fallback for unknown chart format
-      return (
-        <View style={styles.noDataContainer}>
-          <Text style={styles.noDataText}>📈 Chart Data Detected</Text>
-          <Text style={styles.noDataSubtext}>
-            Type: {data.type || 'Unknown'}
-          </Text>
-          <Text style={styles.noDataSubtext}>
-            Data points: {Array.isArray(data.datasets) ? data.datasets.length : 'N/A'}
-          </Text>
-        </View>
-      );
-    } catch (error) {
-      return (
-        <View style={styles.noDataContainer}>
-          <Text style={styles.noDataText}>Chart Rendering Error</Text>
-          <Text style={styles.noDataSubtext}>
-            Unable to display chart data
-          </Text>
-        </View>
-      );
     }
+
+    // If only chart_id is present, do not render anything
+    return null;
   };
 
   const renderContent = () => {
@@ -305,7 +380,9 @@ export function VisualizationRenderer({ visualization }: VisualizationRendererPr
       {visualization.title && (
         <Text style={styles.title}>{visualization.title}</Text>
       )}
-      <View style={styles.chartContainer}>
+      <View
+      //  style={styles.chartContainer}
+       >
         {renderContent()}
       </View>
     </View>

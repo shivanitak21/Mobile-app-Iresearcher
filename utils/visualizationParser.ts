@@ -1,6 +1,6 @@
 import { Visualization } from '@/types';
 
-export function parseVisualizationsFromMarkdown(text: string): Visualization[] {
+export function parseVisualizationsFromMarkdown(text: string, rawLines?: string[]): Visualization[] {
   const visualizations: Visualization[] = [];
   
   // Parse markdown tables
@@ -57,6 +57,58 @@ export function parseVisualizationsFromMarkdown(text: string): Visualization[] {
       }
     } catch (e) {
       // Skip invalid JSON
+    }
+  }
+
+  // Parse chart data from tool_start/tool_end blocks in rawLines
+  if (rawLines && Array.isArray(rawLines)) {
+    for (const line of rawLines) {
+      try {
+        const obj = JSON.parse(line);
+        if ((obj.type === 'tool_start' || obj.type === 'tool_end') && obj.input && obj.tool && obj.tool.startsWith('generate_')) {
+          const input = obj.input;
+          // PIE CHART: If input.data is array of {category, value}
+          if (obj.tool.includes('pie') && Array.isArray(input.data) && input.data[0]?.category && input.data[0]?.value) {
+            visualizations.push({
+              type: 'chart',
+              data: {
+                type: 'pie',
+                data: input.data.map((d: any) => ({ name: d.category, value: d.value, color: undefined })),
+                title: input.title || 'Pie Chart',
+              },
+              title: input.title || 'Pie Chart',
+            });
+          }
+          // BAR CHART: If input.data is array of {category, value}
+          else if (obj.tool.includes('bar') && Array.isArray(input.data) && input.data[0]?.category && input.data[0]?.value) {
+            visualizations.push({
+              type: 'chart',
+              data: {
+                type: 'bar',
+                labels: input.data.map((d: any) => d.category),
+                datasets: [{ data: input.data.map((d: any) => d.value) }],
+                title: input.title || 'Bar Chart',
+              },
+              title: input.title || 'Bar Chart',
+            });
+          }
+          // LINE CHART: If input.data is array of {category, value}
+          else if (obj.tool.includes('line') && Array.isArray(input.data) && input.data[0]?.category && input.data[0]?.value) {
+            visualizations.push({
+              type: 'chart',
+              data: {
+                type: 'line',
+                labels: input.data.map((d: any) => d.category),
+                datasets: [{ data: input.data.map((d: any) => d.value) }],
+                title: input.title || 'Line Chart',
+              },
+              title: input.title || 'Line Chart',
+            });
+          }
+        }
+      } catch (e) {
+        // Not a JSON line
+      }
     }
   }
   
