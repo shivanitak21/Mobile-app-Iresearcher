@@ -89,7 +89,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         chat: {
           ...state.chat,
           messages: [...state.chat.messages, action.payload],
-          isLoading: false,
+          // isLoading remains true until bot response
         },
       };
     case 'RECEIVE_MESSAGE':

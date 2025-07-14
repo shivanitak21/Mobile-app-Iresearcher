@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking, ScrollView } from 'react-native';
-import { Copy, Download, CreditCard as Edit3, Check, X } from 'lucide-react-native';
+import { Copy, Download, Pencil as Edit3, Check, X } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';

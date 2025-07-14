@@ -7,6 +7,7 @@ import { lightTheme, darkTheme } from '@/constants/theme';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { ChatMessage, AgentType } from '@/types';
+import { LoadingBubble } from '@/components/chat/LoadingBubble';
 
 const agentTypes: { value: AgentType; label: string; color: string }[] = [
   { value: 'research', label: 'iResearcher', color: '#3B82F6' },
@@ -248,9 +249,7 @@ export default function ChatScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={renderEmptyState}
           ListFooterComponent={state.chat.isLoading ? (
-            <View style={{ alignItems: 'center', marginVertical: 16 }}>
-              <ActivityIndicator size="large" color={theme.colors.primary} />
-            </View>
+            <LoadingBubble />
           ) : null}
         />
         
