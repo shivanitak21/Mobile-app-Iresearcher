@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, Linking } from 'react-native';
 import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { useApp } from '@/contexts/AppContext';
 import { lightTheme, darkTheme } from '@/constants/theme';
 import { Visualization } from '@/types';
+import { VictoryBar, VictoryChart, VictoryAxis, VictoryTheme, VictoryTooltip } from 'victory';
+import Svg from 'react-native-svg';
 
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - 80;
@@ -169,41 +171,44 @@ export function VisualizationRenderer({ visualization }: VisualizationRendererPr
 
     const headers = Object.keys(data[0]);
     const minTableWidth = headers.length * 140; // 140px per column
-    
+
     return (
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={true}
         style={styles.tableContainer}
         contentContainerStyle={{ minWidth: minTableWidth }}
       >
-        <ScrollView
-          style={{ maxHeight: 400 }}
-          showsVerticalScrollIndicator={true}
-        >
-          <View style={{ minWidth: minTableWidth }}>
-            <View style={styles.tableHeader}>
-              {headers.map((header, index) => (
-                <View key={index} style={styles.tableHeaderCell}>
-                  <Text style={styles.tableHeaderText}>
-                    {header.charAt(0).toUpperCase() + header.slice(1).replace(/([A-Z])/g, ' $1')}
-                  </Text>
-                </View>
-              ))}
-            </View>
+        <View style={{ minWidth: minTableWidth }}>
+          {/* Sticky Header Row */}
+          <View style={styles.tableHeader}>
+            {headers.map((header, index) => (
+              <View key={index} style={styles.tableHeaderCell}>
+                <Text style={styles.tableHeaderText}>
+                  {header.charAt(0).toUpperCase() + header.slice(1).replace(/([A-Z])/g, ' $1')}
+                </Text>
+              </View>
+            ))}
+          </View>
+          {/* Scrollable Data Rows */}
+          <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={true}>
             {data.map((row, index) => (
               <View key={index} style={[styles.tableRow, index % 2 === 1 && styles.tableRowAlt]}>
                 {headers.map((header, cellIndex) => (
                   <View key={cellIndex} style={styles.tableCell}>
-                    <Text style={styles.tableCellText}>
+                    <Text style={[styles.tableCellText, /^(https?:\/\/\S+)$/.test(row[header]) && {color: theme.colors.primary, textDecorationLine: 'underline'}]}
+                      onPress={/^(https?:\/\/\S+)$/.test(row[header]) ? () => Linking.openURL(row[header]) : undefined}
+                      suppressHighlighting={true}
+                    >
                       {row[header]?.toString() || '-'}
                     </Text>
                   </View>
                 ))}
               </View>
             ))}
-          </View>
-        </ScrollView>
+            <View style={{ height: 16 }} />
+          </ScrollView>
+        </View>
       </ScrollView>
     );
   };
@@ -271,29 +276,57 @@ export function VisualizationRenderer({ visualization }: VisualizationRendererPr
           const minBarWidth = 60; // Minimum width per bar
           const chartDataLength = chartData.labels ? chartData.labels.length : (chartData.datasets[0]?.data.length || 1);
           const dynamicWidth = Math.max(chartWidth - 32, chartDataLength * minBarWidth);
+          // Prepare data for VictoryBar
+          const barData = chartData.labels.map((label: string, i: number) => ({
+            x: label,
+            y: chartData.datasets[0].data[i],
+            fill: pastelColors[i % pastelColors.length],
+            label: `${label}\n${chartData.datasets[0].data[i]}`,
+          }));
           return (
             <ScrollView horizontal showsHorizontalScrollIndicator={true} style={{ width: chartWidth - 32 }}>
-              <View style={{ width: dynamicWidth }}>
-                <BarChart
-                  data={{
-                    ...chartData,
-                    datasets: chartData.datasets.map((ds: any, i: number) => ({
-                      ...ds,
-                      color: (opacity = 1) => pastelColors[i % pastelColors.length] + (opacity === 1 ? '' : Math.floor(opacity * 255).toString(16)),
-                    })),
-                  }}
+              <Svg width={dynamicWidth} height={260}>
+                <VictoryChart
                   width={dynamicWidth}
                   height={220}
-                  chartConfig={{
-                    ...chartConfig,
-                    color: (opacity = 1) => pastelColors[0] + (opacity === 1 ? '' : Math.floor(opacity * 255).toString(16)),
-                    labelColor: (opacity = 1) => theme.colors.text,
-                  }}
-                  style={{ borderRadius: 8 }}
-                  yAxisLabel={''}
-                  yAxisSuffix={''}
-                />
-              </View>
+                  theme={VictoryTheme.material}
+                  domainPadding={{ x: 30, y: 20 }}
+                  standalone={false}
+                >
+                  <VictoryAxis
+                    style={{
+                      tickLabels: {
+                        angle: 30,
+                        fontSize: 10,
+                        padding: 10,
+                        textAnchor: 'start',
+                        fontFamily: 'Inter-Regular',
+                      },
+                    }}
+                    tickFormat={(t) => t.length > 14 ? t.slice(0, 14) + '…' : t}
+                  />
+                  <VictoryAxis
+                    dependentAxis
+                    style={{
+                      tickLabels: { fontSize: 10, fontFamily: 'Inter-Regular' },
+                    }}
+                  />
+                  <VictoryBar
+                    data={barData}
+                    x="x"
+                    y="y"
+                    style={{
+                      data: {
+                        fill: ({ datum }) => datum.fill,
+                        width: 28,
+                      },
+                      labels: { fontSize: 12, fontFamily: 'Inter-Regular' },
+                    }}
+                    labels={({ datum }) => `${datum.y}`}
+                    labelComponent={<VictoryTooltip flyoutStyle={{ fill: '#fff' }} />}
+                  />
+                </VictoryChart>
+              </Svg>
             </ScrollView>
           );
         }

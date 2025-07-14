@@ -160,5 +160,6 @@ export function cleanMarkdownText(text: string): string {
     // Ensure proper line breaks for lists
     .replace(/\n-/g, '\n\n-')
     .replace(/\n\*/g, '\n\n*')
-    .replace(/\n\d+\./g, '\n\n$&');
+    .replace(/\n\d+\./g, '\n\n$&')
+    .replace(/(`|>\s*)?((\[(\d+)\])+)(`)?/g, '$2');
 }

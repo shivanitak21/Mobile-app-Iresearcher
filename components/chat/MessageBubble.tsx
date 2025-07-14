@@ -11,6 +11,7 @@ import { ChatMessage } from '@/types';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { VisualizationRenderer } from './VisualizationRenderer';
+import { cleanMarkdownText } from '@/utils/visualizationParser';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -362,6 +363,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
+    link: {
+      color: theme.colors.primary,
+      textDecorationLine: 'underline' as 'underline',
+    },
   };
 
   const styles = StyleSheet.create({
@@ -449,10 +454,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           <Markdown 
             style={markdownStyles}
             onLinkPress={handleLinkPress}
-            // Ensure links are clickable and open in browser
-            // react-native-markdown-display already supports this
           >
-            {message.text}
+            {cleanMarkdownText(message.text)}
           </Markdown>
         )}
         {message.visualizations && message.visualizations.length > 0 && (

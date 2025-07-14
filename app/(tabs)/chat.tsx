@@ -251,12 +251,12 @@ export default function ChatScreen() {
           ListFooterComponent={state.chat.isLoading ? (
             <LoadingBubble />
           ) : null}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         />
         
         <ChatInput
           onSendMessage={handleSendMessage}
           onClearChat={clearChat}
-          disabled={state.chat.isLoading}
         />
       </View>
 
