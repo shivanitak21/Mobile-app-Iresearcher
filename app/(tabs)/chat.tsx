@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, StatusBar, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, StatusBar, Modal, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, ChevronDown } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
@@ -220,47 +220,52 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <ArrowLeft size={24} color={theme.colors.text} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.agentSelector}
-          onPress={() => setShowAgentDropdown(true)}
-        >
-          <Text style={styles.agentText}>
-            {selectedAgentData?.label || 'Select Agent'}
-          </Text>
-          <ChevronDown size={20} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
-      </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color={theme.colors.text} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.agentSelector}
+            onPress={() => setShowAgentDropdown(true)}
+          >
+            <Text style={styles.agentText}>
+              {selectedAgentData?.label || 'Select Agent'}
+            </Text>
+            <ChevronDown size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.chatContainer}>
-        <FlatList
-          ref={flatListRef}
-          data={state.chat.messages}
-          renderItem={renderMessage}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.messagesList}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={renderEmptyState}
-          ListFooterComponent={state.chat.isLoading ? (
-            <LoadingBubble />
-          ) : null}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        />
-        
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          onClearChat={clearChat}
-        />
-      </View>
+        <View style={styles.chatContainer}>
+          <FlatList
+            ref={flatListRef}
+            data={state.chat.messages}
+            renderItem={renderMessage}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.messagesList}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={renderEmptyState}
+            ListFooterComponent={state.chat.isLoading ? (
+              <LoadingBubble />
+            ) : null}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          />
+          <ChatInput
+            onSendMessage={handleSendMessage}
+            onClearChat={clearChat}
+          />
+        </View>
 
-      {renderAgentDropdown()}
+        {renderAgentDropdown()}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

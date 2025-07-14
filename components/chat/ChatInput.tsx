@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, Alert, Platform, KeyboardAvoidingView } from 'react-native';
 import { Send, Paperclip, Mic, RotateCcw } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useApp } from '@/contexts/AppContext';
@@ -120,39 +120,45 @@ export function ChatInput({ onSendMessage, onClearChat, disabled }: ChatInputPro
   });
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputContainer}>
-        <TouchableOpacity style={styles.reloadButton} onPress={onClearChat}>
-          <RotateCcw size={20} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
-        
-        <TextInput
-          style={styles.input}
-          placeholder="Ask anything..."
-          placeholderTextColor={theme.colors.textSecondary}
-          value={message}
-          onChangeText={setMessage}
-          multiline
-          editable={!disabled}
-          onKeyPress={handleKeyPress}
-        />
-        
-        <TouchableOpacity style={styles.iconButton} onPress={handleAttachFile}>
-          <Paperclip size={20} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.iconButton} onPress={handleVoiceInput}>
-          <Mic size={20} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={styles.sendButton}
-          onPress={handleSend}
-          disabled={!message.trim() || disabled}
-        >
-          <Send size={20} color="#FFFFFF" />
-        </TouchableOpacity>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+    >
+      <View style={styles.container}>
+        <View style={styles.inputContainer}>
+          <TouchableOpacity style={styles.reloadButton} onPress={onClearChat}>
+            <RotateCcw size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+          
+          <TextInput
+            style={styles.input}
+            placeholder="Ask anything..."
+            placeholderTextColor={theme.colors.textSecondary}
+            value={message}
+            onChangeText={setMessage}
+            multiline={false}
+            editable={!disabled}
+            blurOnSubmit={true}
+            onSubmitEditing={handleSend}
+          />
+          
+          <TouchableOpacity style={styles.iconButton} onPress={handleAttachFile}>
+            <Paperclip size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.iconButton} onPress={handleVoiceInput}>
+            <Mic size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={handleSend}
+            disabled={!message.trim() || disabled}
+          >
+            <Send size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
