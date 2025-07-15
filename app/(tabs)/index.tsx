@@ -81,7 +81,7 @@ export default function HomeScreen() {
     },
     header: {
       paddingHorizontal: horizontalPadding,
-      paddingTop: theme.spacing.xl,
+      paddingTop: theme.spacing.xl * 2,
       paddingBottom: theme.spacing.lg,
       backgroundColor: theme.colors.background,
     },
@@ -90,6 +90,7 @@ export default function HomeScreen() {
       color: theme.colors.text,
       marginBottom: theme.spacing.sm,
       textAlign: 'center',
+      fontFamily: 'Roboto',
     },
     grid: {
       paddingHorizontal: horizontalPadding,
@@ -104,23 +105,14 @@ export default function HomeScreen() {
     },
   });
 
-  const themeColors: [string, string] = state.theme === 'light'
-    ? ['#e0e7ef', '#b6d0f7']
-    : ['#232946', '#3b3c5c'];
-
   return (
-    <LinearGradient
-      colors={themeColors}
-      style={{ flex: 1 }}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-    >
-      <BlurView intensity={40} tint={state.theme === 'light' ? 'light' : 'dark'} style={{ ...StyleSheet.absoluteFillObject }} />
-      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
-        <View style={styles.header}>
-          <Text style={styles.title}>AI Agents</Text>
-          {/* Removed description/subtitle for minimal look */}
-        </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>AI Agents</Text>
+        {/* Removed description/subtitle for minimal look */}
+      </View>
+      {/* Theme-consistent background behind cards */}
+      <View style={{ flex: 1, width: '100%', backgroundColor: theme.colors.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: 8 }}>
         <FlatList
           data={mockAgents}
           renderItem={({ item }) => (
@@ -133,7 +125,7 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           numColumns={2}
         />
-      </SafeAreaView>
-    </LinearGradient>
+      </View>
+    </SafeAreaView>
   );
 }

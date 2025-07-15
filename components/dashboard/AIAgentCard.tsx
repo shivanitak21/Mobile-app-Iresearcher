@@ -71,11 +71,11 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
   });
 
   const isLight = state.theme === 'light';
-  const cardBg = isLight ? 'rgba(255,255,255,0.18)' : 'rgba(36,54,90,0.38)';
-  const borderCol = isLight ? 'rgba(255,255,255,0.22)' : 'rgba(59,130,246,0.18)';
+  const cardBg = isLight ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)';
+  const borderCol = isLight ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.1)';
   const iconColor = '#fff';
   const iconShadow = isLight ? {} : { textShadowColor: '#000', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 };
-  const textColor = isLight ? '#222e3a' : 'rgba(255,255,255,0.92)';
+  const textColor = isLight ? '#1a202c' : 'rgba(255,255,255,0.95)';
 
   const styles = StyleSheet.create({
     container: {
@@ -84,56 +84,58 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
       justifyContent: 'center',
     },
     iconGlass: {
-      width: 72,
-      height: 72,
-      borderRadius: 20,
+      width: 160,
+      height: 160,
+      borderRadius: 44,
       overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 12,
-      borderWidth: 1,
+      marginBottom: 0,
+      borderWidth: 1.5,
       borderColor: borderCol,
       backgroundColor: cardBg,
       position: 'relative',
       shadowColor: isLight ? '#3B82F6' : '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isLight ? 0.10 : 0.22,
-      shadowRadius: 12,
-      elevation: 6,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: isLight ? 0.15 : 0.8,
+      shadowRadius: 20,
+      elevation: 12,
+      // opacity: isLight ? 0.15 : 0.5
     },
     blur: {
       ...StyleSheet.absoluteFillObject,
-      borderRadius: 20,
+      borderRadius: 44,
     },
     icon: {
-      fontSize: 32,
-      color: iconColor,
-      textAlign: 'center',
+      width: 90,
+      height: 90,
+      resizeMode: 'contain',
+      marginBottom: 10,
       zIndex: 1,
-      ...iconShadow,
     },
     name: {
-      ...theme.typography.h3,
       color: textColor,
       textAlign: 'center',
-      fontWeight: '500',
-      fontSize: 14,
+      fontWeight: '700',
+      fontSize: 18,
+      fontFamily: 'Roboto',
       marginTop: 0,
+      zIndex: 1,
     },
   });
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.85}>
       <View style={styles.iconGlass}>
-        <BlurView intensity={70} tint={isLight ? 'light' : 'dark'} style={styles.blur} />
+        {/* <BlurView intensity={isLight ? 300 : 340} tint={isLight ? 'light' : 'dark'} /> */}
         <Image
           source={agentImageMap[agent.type] || agentImageMap['research']}
-          style={{ width: 36, height: 36, resizeMode: 'contain', zIndex: 1 }}
+          style={styles.icon}
         />
+        <Text style={styles.name} numberOfLines={2}>
+          {agent.name}
+        </Text>
       </View>
-      <Text style={styles.name} numberOfLines={1}>
-        {agent.name}
-      </Text>
     </TouchableOpacity>
   );
 }
