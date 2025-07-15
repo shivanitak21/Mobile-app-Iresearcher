@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Platform } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
 import { lightTheme, darkTheme } from '@/constants/theme';
 import { AIAgent } from '@/types';
@@ -11,14 +11,43 @@ const cardGap = 16;
 const horizontalPadding = 24;
 const cardWidth = (width - (horizontalPadding * 2) - cardGap) / 2;
 
-// Map agent type to Flaticon PNGs
-const agentImageMap: Record<string, any> = {
-  research: require('@/assets/images/search.png'),
-  medical: require('@/assets/images/hospital.png'),
-  finance: require('@/assets/images/finance.png'),
-  'deep-research': require('@/assets/images/brain.png'),
-  business: require('@/assets/images/business.png'),
-  'data-analyst': require('@/assets/images/chart.png'),
+// Icon configuration type
+interface IconConfig {
+  library: 'Feather' | 'MaterialCommunityIcons' | 'Ionicons';
+  name: string;
+  size?: number;
+}
+
+// Map agent type to icons with custom sizes
+const agentIconMap: Record<string, IconConfig> = {
+  research: { library: 'Feather', name: 'search', size: 32 },
+  medical: { library: 'MaterialCommunityIcons', name: 'medical-bag', size: 32 },
+  finance: { library: 'MaterialCommunityIcons', name: 'chart-line', size: 32 },
+  'deep-research': { library: 'MaterialCommunityIcons', name: 'brain', size: 32 },
+  business: { library: 'MaterialCommunityIcons', name: 'briefcase-outline', size: 32 },
+  'data-analyst': { library: 'Feather', name: 'bar-chart-2', size: 32 },
+};
+
+// Icon renderer component
+const IconRenderer = ({ iconConfig, color }: { iconConfig: IconConfig; color: string }) => {
+  const { library, name, size = 32 } = iconConfig;
+  
+  const iconProps = {
+    name: name as any,
+    size,
+    color,
+  };
+
+  switch (library) {
+    case 'Feather':
+      return <Feather {...iconProps} />;
+    case 'MaterialCommunityIcons':
+      return <MaterialCommunityIcons {...iconProps} />;
+    case 'Ionicons':
+      return <Ionicons {...iconProps} />;
+    default:
+      return <Feather name="search" size={size} color={color} />;
+  }
 };
 
 interface AIAgentCardProps {
@@ -30,52 +59,29 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
   const { state } = useApp();
   const theme = state.theme === 'light' ? lightTheme : darkTheme;
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const shadowAnim = useRef(new Animated.Value(0)).current;
 
- const handlePressIn = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        useNativeDriver: false,
-      }),
-      Animated.timing(shadowAnim, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start();
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: false,
-      }),
-      Animated.timing(shadowAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
   };
 
-  const animatedShadowOpacity = shadowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.1, 0.25],
-  });
-
-  const animatedElevation = shadowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [4, 12],
-  });
-
   const isLight = state.theme === 'light';
-  const cardBg = isLight ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)';
-  const borderCol = isLight ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.1)';
-  const iconColor = '#fff';
-  const iconShadow = isLight ? {} : { textShadowColor: '#000', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 };
-  const textColor = isLight ? '#1a202c' : 'rgba(255,255,255,0.95)';
+  const iconConfig = agentIconMap[agent.type] || agentIconMap['research'];
+  
+  // Better color scheme
+  const iconColor = isLight ? '#3B82F6' : '#60A5FA';
+  const textColor = isLight ? '#1F2937' : '#F9FAFB';
+  const cardBg = isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(17, 24, 39, 0.8)';
+  const borderColor = isLight ? 'rgba(229, 231, 235, 0.8)' : 'rgba(75, 85, 99, 0.6)';
 
   const styles = StyleSheet.create({
     container: {
@@ -83,59 +89,79 @@ export function AIAgentCard({ agent, onPress }: AIAgentCardProps) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    iconGlass: {
-      width: 160,
-      height: 160,
-      borderRadius: 44,
-      overflow: 'hidden',
+    cardContainer: {
+      transform: [{ scale: scaleAnim }],
+    },
+    card: {
+      width: 120,
+      height: 120,
+      borderRadius: 24,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 0,
-      borderWidth: 1.5,
-      borderColor: borderCol,
       backgroundColor: cardBg,
-      position: 'relative',
-      shadowColor: isLight ? '#3B82F6' : '#000',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: isLight ? 0.15 : 0.8,
-      shadowRadius: 20,
-      elevation: 12,
-      // opacity: isLight ? 0.15 : 0.5
+      borderWidth: Platform.OS === 'android' ? 0 : 1,
+      borderColor: borderColor,
+      ...Platform.select({
+        ios: {
+          shadowColor: isLight ? '#3B82F6' : '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isLight ? 0.1 : 0.3,
+          shadowRadius: 8,
+        },
+        android: {
+          elevation: 6,
+        },
+      }),
     },
     blur: {
       ...StyleSheet.absoluteFillObject,
-      borderRadius: 44,
+      borderRadius: 24,
     },
-    icon: {
-      width: 90,
-      height: 90,
-      resizeMode: 'contain',
-      marginBottom: 10,
-      zIndex: 1,
+    iconContainer: {
+      marginBottom: 8,
+      padding: 8,
+      borderRadius: 16,
+      backgroundColor: isLight ? 'rgba(59, 130, 246, 0.1)' : 'rgba(96, 165, 250, 0.2)',
     },
     name: {
       color: textColor,
       textAlign: 'center',
-      fontWeight: '700',
-      fontSize: 18,
-      fontFamily: 'Roboto',
-      marginTop: 0,
-      zIndex: 1,
+      fontWeight: '600',
+      fontSize: 14,
+      fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+      lineHeight: 18,
+      paddingHorizontal: 8,
     },
   });
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.85}>
-      <View style={styles.iconGlass}>
-        {/* <BlurView intensity={isLight ? 300 : 340} tint={isLight ? 'light' : 'dark'} /> */}
-        <Image
-          source={agentImageMap[agent.type] || agentImageMap['research']}
-          style={styles.icon}
-        />
-        <Text style={styles.name} numberOfLines={2}>
-          {agent.name}
-        </Text>
-      </View>
+    <TouchableOpacity 
+      style={styles.container} 
+      onPress={onPress} 
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={0.9}
+    >
+      <Animated.View style={styles.cardContainer}>
+        <View style={styles.card}>
+          {/* Blur effect for iOS only to avoid white square on Android */}
+          {Platform.OS === 'ios' && (
+            <BlurView 
+              intensity={isLight ? 20 : 40} 
+              tint={isLight ? 'light' : 'dark'} 
+              style={styles.blur} 
+            />
+          )}
+          
+          <View style={styles.iconContainer}>
+            <IconRenderer iconConfig={iconConfig} color={iconColor} />
+          </View>
+          
+          <Text style={styles.name} numberOfLines={2}>
+            {agent.name}
+          </Text>
+        </View>
+      </Animated.View>
     </TouchableOpacity>
   );
 }
